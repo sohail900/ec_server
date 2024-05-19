@@ -1,16 +1,17 @@
-import { Router, Request, Response, NextFunction } from 'express'
-import { Login, Register } from '../controller/controller'
-import { ErrorHandler } from '../errorHandler/errorHandler'
+import { Router } from 'express'
+import {
+    login,
+    register,
+    forget_password,
+    reset_password,
+    otp,
+} from '../controller/controller'
+import resetPassAuth from '../auth/resPassAuth'
 const router = Router()
 
-router.route('/').post((req: Request, resp: Response, next: NextFunction) => {
-    try {
-        const text = req.body.texts
-        console.log(text)
-    } catch (error) {
-        throw new ErrorHandler(401, 'Fuckin gError')
-    }
-})
-router.route('/login').post(Login)
-router.route('/register').post(Register)
+router.route('/login').post(login)
+router.route('/register').post(register)
+router.route('/forget_password').put(forget_password)
+router.route('/otp').post(otp)
+router.route('/reset_password').get(resetPassAuth, reset_password)
 export default router

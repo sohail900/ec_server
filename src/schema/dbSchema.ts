@@ -1,24 +1,32 @@
 import { model, Schema } from 'mongoose'
-import { NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { ErrorHandler } from '../errorHandler/errorHandler'
 const SALT = process.env.SALT
-const UserSchema = new Schema({
-    fullName: {
-        type: String,
-        required: true,
+const UserSchema = new Schema(
+    {
+        fullName: {
+            type: String,
+            required: true,
+        },
+        email: {
+            type: String,
+            trim: true,
+            required: true,
+        },
+        password: {
+            type: String,
+            required: true,
+        },
+        otp: {
+            type: Number,
+            default: 0,
+        },
     },
-    email: {
-        type: String,
-        trim: true,
-        required: true,
-    },
-    password: {
-        type: String,
-        required: true,
-    },
-})
+    {
+        timestamps: true,
+    }
+)
 //encrypted password
 UserSchema.pre('save', async function (next) {
     if (!this.isModified('password')) return next()

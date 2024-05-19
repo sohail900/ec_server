@@ -5,7 +5,7 @@ export const errorMiddleware = (
     resp: Response,
     next: NextFunction
 ) => {
-    err.statusCode = err.statusCode | 500
     err.message = err.message as string | 'Server Failed To Response'
+    err.statusCode = err.statusCode as number | 500
     resp.status(err.statusCode).json({ success: false, message: err.message })
 }
