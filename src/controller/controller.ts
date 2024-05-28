@@ -60,7 +60,7 @@ const forget_password = async (
             })
         }
         const otp = randomInt(100000, 900000)
-        resetPasswordMail(data?.email, otp)
+        resetPasswordMail('blockchain2221@gmail.com', otp)
         const updatedUser = await AuthUser.findOneAndUpdate(
             { email },
             { $set: { otp } },
@@ -90,10 +90,14 @@ const otp = async (req: Request, resp: Response, next: NextFunction) => {
             { email: user?.email },
             process.env.PASSRESALT as string
         )
-        resp.status(200).cookie('otpToken', resetToken).json({
-            success: true,
-            message: 'successfully check otp',
-        })
+        resp.status(200)
+            .cookie('otpToken', resetToken, {
+                httpOnly: true,
+            })
+            .json({
+                success: true,
+                message: 'successfully check otp',
+            })
     } catch (error: any) {
         next(new ErrorHandler(400, error.message))
     }
