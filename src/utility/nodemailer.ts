@@ -20,11 +20,10 @@ export const resetPasswordMail = async (
             subject: 'Reset Password',
             html: `<h1>RESET PASSWORD</h1><br></br><h2>OTP : ${otp}</h2>`,
         }
-        const msgInfo = await transport.sendMail(emailConfig, (err, info) => {
-            if (err) new ErrorHandler(500, 'server error')
+        transport.sendMail(emailConfig, (err, info) => {
+            if (err) new ErrorHandler(500, err.message)
             else console.log(info)
         })
-        console.log(msgInfo)
     } catch (error: any) {
         throw new ErrorHandler(400, error.message)
     }

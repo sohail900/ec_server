@@ -17,11 +17,10 @@ export default async function resetPassAuth(
             cookies,
             process.env.PASSRESALT as string
         ) as JwtPayload
-        console.log(decoded)
-        if (!decoded || !decoded.id) {
+        if (!decoded || !decoded.email) {
             return next(new ErrorHandler(401, 'Unauthorized Access'))
         }
-        const user = await AuthUser.findById({ _id: decoded.id })
+        const user = await AuthUser.findOne({ email: decoded.email })
         req.user = user
         next()
     } catch (error: any) {

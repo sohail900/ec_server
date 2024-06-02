@@ -1,10 +1,13 @@
 import { Request, Response, NextFunction } from 'express'
-import { randomInt, randomBytes } from 'crypto'
+import bcrypt from 'bcrypt'
+import { randomInt } from 'crypto'
+import axios from 'axios'
+import jwt from 'jsonwebtoken'
+import cheerio from 'cheerio'
 import AuthUser from '../schema/dbSchema'
 import { ErrorHandler } from '../errorHandler/errorHandler'
 import { IRequest, IUser } from '../types/types'
-import { resetPasswordMail } from '../config/nodemailer'
-import jwt from 'jsonwebtoken'
+import { resetPasswordMail } from '../utility/nodemailer'
 const register = async (req: Request, resp: Response, next: NextFunction) => {
     try {
         //check email
@@ -82,10 +85,9 @@ const otp = async (req: Request, resp: Response, next: NextFunction) => {
         if (!user) {
             resp.status(200).json({
                 success: true,
-                message: 'OTP not matched',
+                message: 'This OTP does not exists!!',
             })
         }
-        console.log('hello world')
         const resetToken = jwt.sign(
             { email: user?.email },
             process.env.PASSRESALT as string
@@ -102,7 +104,52 @@ const otp = async (req: Request, resp: Response, next: NextFunction) => {
         next(new ErrorHandler(400, error.message))
     }
 }
-const reset_password = (req: IRequest, resp: Response, next: NextFunction) => {
-    const user = req.user
+const reset_password = async (
+    req: IRequest,
+    resp: Response,
+    next: NextFunction
+) => {
+    try {
+        const user = req.user
+        const newPassword = req.body.newPassword
+        // Manually hash the new password
+        const salt = await bcrypt.genSalt(10)
+        const hashedPassword = await bcrypt.hash(newPassword, salt)
+        const updatedPassword = await AuthUser.findOneAndUpdate(
+            { _id: user._id },
+            { $set: { password: hashedPassword, otp: 0 } },
+            { new: true }
+        )
+        resp.status(200).json({
+            success: true,
+            message: 'successful updated password',
+            updatedPassword,
+        })
+    } catch (error: any) {
+        next(new ErrorHandler(400, error.message))
+    }
 }
-export { register, login, otp, forget_password, reset_password }
+// web scraping extract data from nike website
+const nikeScraper = async (
+    req: Request,
+    resp: Response,
+    next: NextFunction
+) => {
+    try {
+        const { data } = await axios.get(
+            'https://www.nike.com/id/w/mens-football-shoes-1gdj0znik1zy7ok'
+        )
+        const $ = cheerio.load(data)
+        console.log($.html())
+        $('div.product-card__body').each(async (index, element) => {
+            // Extract product details
+            console.log(element)
+            const price = $(element).find('div.product-price').text().trim()
+            // Create a new Product object and save to MongoDB
+            console.log(price)
+        })
+    } catch (error: any) {
+        next(new ErrorHandler(400, error.message))
+    }
+}
+export { register, login, otp, forget_password, reset_password, nikeScraper }
